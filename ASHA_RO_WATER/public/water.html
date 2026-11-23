@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ASHA RO WATER — Instant UPI Paani Dispense</title>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  body {
+    background: linear-gradient(135deg, #091e3a 0%, #173f73 50%, #0072ff 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    color: #1e293b;
+  }
+  .container {
+    background: #ffffff;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #0052cc, #0099ff);
+    color: #fff;
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .header p {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+  .content {
+    padding: 24px 20px;
+  }
+  .tagline {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 20px;
+  }
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .opt-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px 12px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+  }
+  .opt-card:hover, .opt-card.selected {
+    border-color: #0072ff;
+    background: #eff6ff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 114, 255, 0.15);
+  }
+  .opt-litres {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0052cc;
+  }
+  .opt-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #057a55;
+    margin-top: 4px;
+  }
+  .opt-sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .custom-row {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .custom-row label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+  }
+  .custom-row input {
+    width: 90px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    color: #0f172a;
+    outline: none;
+  }
+  .pay-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #057a55, #0e9f6e);
+    color: #ffffff;
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(5, 122, 85, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  .pay-btn:hover {
+    background: linear-gradient(135deg, #046c4e, #057a55);
+    transform: translateY(-1px);
+  }
+  .upi-badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .badge {
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+  .status-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+  .status-info { background: #e0f2fe; color: #0369a1; display: block; }
+  .status-success { background: #def7ec; color: #03543f; display: block; }
+  .status-error { background: #fde8e8; color: #9b1c1c; display: block; }
+  .pulse {
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🚰 ASHA RO WATER</h1>
+    <p>Smart Automatic Water ATM</p>
+  </div>
+
+  <div class="content">
+    <div class="tagline">👉 Paani ki quantity select karein aur UPI se pay karein:</div>
+
+    <div class="options-grid">
+      <div class="opt-card selected" id="card10" onclick="chooseQty(10, 10)">
+        <div class="opt-litres">10L</div>
+        <div class="opt-price">₹10</div>
+        <div class="opt-sub">10 Litre Paani</div>
+      </div>
+      <div class="opt-card" id="card20" onclick="chooseQty(20, 20)">
+        <div class="opt-litres">20L</div>
+        <div class="opt-price">₹20</div>
+        <div class="opt-sub">20 Litre Paani</div>
+      </div>
+    </div>
+
+    <div class="custom-row">
+      <label>Koi aur amount (₹):</label>
+      <input type="number" id="amtInput" value="10" min="5" max="200" oninput="manualAmt()">
+    </div>
+
+    <button class="pay-btn pulse" id="payBtn" onclick="startUPIPayment()">
+      <span>📲 Pay with UPI</span>
+      <span id="btnAmtLabel">(₹10)</span>
+    </button>
+
+    <div class="upi-badges">
+      <span class="badge">Google Pay</span>
+      <span class="badge">PhonePe</span>
+      <span class="badge">Paytm</span>
+      <span class="badge">BHIM</span>
+    </div>
+
+    <div id="statusBox" class="status-box"></div>
+  </div>
+
+  <div class="footer">
+    ASHA RO WATER — Pure Drinking Water • 24x7 Vending
+  </div>
+</div>
+
+<script>
+let selectedLitres = 10;
+let selectedAmount = 10;
+let ratePerLitre = 1; // Rs per Litre
+
+// Check query params: e.g. /water?amt=10&auto=1
+const urlParams = new URLSearchParams(window.location.search);
+const paramAmt = parseInt(urlParams.get('amt'), 10);
+const autoTrigger = urlParams.get('auto') === '1' || urlParams.get('auto') === 'true';
+
+async function init() {
+  try {
+    const res = await fetch('/api/price').then(r => r.json());
+    if (res && res.success) {
+      ratePerLitre = parseFloat(res.rs_per_litre) || 1;
+    }
+  } catch(e) {}
+
+  if (paramAmt && paramAmt > 0) {
+    selectedAmount = paramAmt;
+    selectedLitres = Math.round(paramAmt / ratePerLitre);
+    document.getElementById('amtInput').value = selectedAmount;
+    updateUI();
+  }
+
+  // If auto=1 is passed from a specific QR code, automatically trigger Razorpay UPI popup!
+  if (autoTrigger) {
+    showStatus(`⏳ UPI khul raha hai (₹${selectedAmount})...`, 'info');
+    setTimeout(() => {
+      startUPIPayment();
+    }, 400);
+  }
+}
+
+function chooseQty(litres, amt) {
+  selectedLitres = litres;
+  selectedAmount = amt;
+  document.getElementById('amtInput').value = amt;
+  updateUI();
+}
+
+function manualAmt() {
+  const v = parseFloat(document.getElementById('amtInput').value) || 0;
+  selectedAmount = v;
+  selectedLitres = Math.round(v / ratePerLitre);
+  updateUI();
+}
+
+function updateUI() {
+  document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+  if (selectedAmount === 10) document.getElementById('card10').classList.add('selected');
+  if (selectedAmount === 20) document.getElementById('card20').classList.add('selected');
+  document.getElementById('btnAmtLabel').textContent = `(₹${selectedAmount} = ${selectedLitres}L)`;
+}
+
+async function startUPIPayment() {
+  if (!selectedAmount || selectedAmount < 5) {
+    showStatus('❌ Kripya kam se kam ₹5 ka amount chunein.', 'error');
+    return;
+  }
+
+  showStatus(`⏳ UPI Payment shuru ho raha hai...`, 'info');
+  const payBtn = document.getElementById('payBtn');
+  payBtn.disabled = true;
+
+  try {
+    // 1. Order create
+    const orderRes = await fetch('/api/razorpay/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount_rs: selectedAmount })
+    }).then(r => r.json());
+
+    if (!orderRes || !orderRes.success) {
+      showStatus('❌ Order create nahi ho saka: ' + (orderRes.message || 'Error'), 'error');
+      payBtn.disabled = false;
+      return;
+    }
+
+    // 2. Open Razorpay Checkout (UPI auto-focused)
+    const options = {
+      key: orderRes.key_id,
+      amount: orderRes.amount,
+      currency: "INR",
+      name: "ASHA RO WATER",
+      description: `${selectedLitres} Litre Water (₹${selectedAmount})`,
+      order_id: orderRes.order_id,
+      handler: async function (response) {
+        showStatus('⏳ Payment verify ho rahi hai... Machine ko nirdesh bhej rahe hain...', 'info');
+        
+        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            amount_rs: selectedAmount
+          })
+        }).then(r => r.json()).catch(() => null);
+
+        if (verifyRes && verifyRes.success) {
+          showStatus(`🎉 ₹${selectedAmount} Payment Successful!<br><br>🚰 <b>Machine ${verifyRes.litres} Liter Paani Bhar Rahi Hai!</b><br>Kripya bartan nozzle ke niche rakhein.`, 'success');
+          payBtn.style.display = 'none';
+        } else {
+          showStatus('❌ Verification mein problem aayi: ' + (verifyRes ? verifyRes.message : 'Timeout'), 'error');
+          payBtn.disabled = false;
+        }
+      },
+      prefill: {
+        name: "Asha Water Customer",
+        contact: "9876543210"
+      },
+      notes: {
+        type: "WATER_DISPENSE",
+        litres: selectedLitres
+      },
+      theme: {
+        color: "#0072ff"
+      },
+      modal: {
+        ondismiss: function() {
+          showStatus('⚠️ Payment cancel kar diya gaya. Dobara koshish karein.', 'error');
+          payBtn.disabled = false;
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (resp) {
+      showStatus('❌ Payment Fail ho gaya: ' + resp.error.description, 'error');
+      payBtn.disabled = false;
+    });
+    rzp.open();
+
+  } catch(err) {
+    showStatus('❌ Connection error: ' + err.message, 'error');
+    payBtn.disabled = false;
+  }
+}
+
+function showStatus(msg, type) {
+  const box = document.getElementById('statusBox');
+  box.className = 'status-box status-' + type;
+  box.innerHTML = msg;
+}
+
+init();
+</script>
+</body>
+</html>

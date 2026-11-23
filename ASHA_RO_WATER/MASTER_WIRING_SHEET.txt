@@ -1,0 +1,103 @@
+================================================================================
+          🚰 ASHA RO WATER - 20 LITER AUTOMATIC WATER SYSTEM
+                 MASTER WIRING SHEET (EK JAGAH SAB KUCH)
+================================================================================
+
+Code ESP32 par safalta-purvak upload ho gaya hai!
+Ab aap aaraam se neeche diye gaye chart ke hisaab se sabhi wires jod sakte hain.
+
+--------------------------------------------------------------------------------
+📌 1. MASTER WIRING TABLE (Ek Nazar Mein Har Connection)
+--------------------------------------------------------------------------------
+
+| #  | Component       | Component Pin | Wire Rang   | Jodna Kahan Hai (ESP32 / Power) |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 1  | RFID RC522      | SDA           | Koi bhi     | ESP32 Pin D5                   |
+| 2  | RFID RC522      | SCK           | Koi bhi     | ESP32 Pin D18                  |
+| 3  | RFID RC522      | MOSI          | Koi bhi     | ESP32 Pin D23                  |
+| 4  | RFID RC522      | MISO          | Koi bhi     | ESP32 Pin D19                  |
+| 5  | RFID RC522      | IRQ           | --          | KHALI CHHODEIN (Kuch mat jodo)  |
+| 6  | RFID RC522      | GND           | Kala        | ESP32 GND                       |
+| 7  | RFID RC522      | RST           | Koi bhi     | ESP32 Pin D22                  |
+| 8  | RFID RC522      | 3.3V          | Lal         | ESP32 Pin 3V3 (3.3V)            |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 9  | OLED Display    | GND           | Kala        | ESP32 GND                       |
+| 10 | OLED Display    | VDD / VCC     | Lal         | ESP32 Pin 3V3 (3.3V sirf!)      |
+| 11 | OLED Display    | SCK / SCL     | Koi bhi     | ESP32 Pin D15                  |
+| 12 | OLED Display    | SDA           | Koi bhi     | ESP32 Pin D21                  |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 13 | Buzzer          | + (Lamba Pin) | Lal         | ESP32 Pin D13                  |
+| 14 | Buzzer          | - (Chhota Pin)| Kala        | ESP32 GND                       |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 15 | Flow Sensor     | Red (VCC)     | Lal         | ESP32 Pin VIN (5V power)        |
+| 16 | Flow Sensor     | Black (GND)   | Kala        | ESP32 GND                       |
+| 17 | Flow Sensor     | Yellow (Sig)  | Peela       | ESP32 Pin D34                  |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 18 | Relay Module    | IN            | Koi bhi     | ESP32 Pin D26                  |
+| 19 | Relay Module    | VCC           | Lal         | 12V Adapter ka (+) Plus Wire    |
+| 20 | Relay Module    | GND           | Kala        | 12V Adapter (-) AND ESP32 GND   |
+|----|-----------------|---------------|-------------|---------------------------------|
+| 21 | Relay (AC Side) | COM           | Lal / Bhura | 230V AC Live Supply Wire ⚡     |
+| 22 | Relay (AC Side) | NO            | Koi bhi     | AC Motor ka Pehla Wire ⚡       |
+| 23 | Direct AC       | NEUTRAL       | Kala / Neela| AC Motor ka Doosra Wire ⚡      |
+
+================================================================================
+📌 2. COMPONENT-BY-COMPONENT DETAIL
+================================================================================
+
+1️⃣ RFID RC522 (Card Reader):
+   - SDA  -----> ESP32 D5
+   - SCK  -----> ESP32 D18
+   - MOSI -----> ESP32 D23
+   - MISO -----> ESP32 D19
+   - IRQ  -----> (Khaali)
+   - GND  -----> ESP32 GND
+   - RST  -----> ESP32 D22
+   - 3.3V -----> ESP32 3V3
+
+2️⃣ OLED DISPLAY (0.96 inch Screen):
+   - GND  -----> ESP32 GND
+   - VDD  -----> ESP32 3V3 (Dhyan rahe 3.3V pe hi lagana hai)
+   - SCK  -----> ESP32 D15
+   - SDA  -----> ESP32 D21
+
+3️⃣ BUZZER (Beep Speaker):
+   - (+) Lamba taar -----> ESP32 D13
+   - (-) Chhota taar ----> ESP32 GND
+
+4️⃣ FLOW SENSOR (ZJ-S201 / YF-S201):
+   - Lal taar   -----> ESP32 VIN (Yahi 5V deta hai)
+   - Kala taar  -----> ESP32 GND
+   - Peela taar -----> ESP32 D34
+
+5️⃣ RELAY MODULE (12V) & MOTOR (230V):
+   Relay Low Voltage Control:
+   - IN  -----> ESP32 D26
+   - VCC -----> 12V Adapter ka Plus (+)
+   - GND -----> 12V Adapter ka Minus (-) AUR ESP32 GND (Dono ek sath)
+
+   Relay AC Motor Switch (230V Mains - Dhyan se):
+   - 230V Live supply wire Relay ke "COM" par lagao.
+   - Motor ka pehla wire Relay ke "NO" par lagao.
+   - 230V Neutral wire seedha motor ke doosre wire se jod do.
+
+================================================================================
+📌 3. SABHI GND KA COMMON CONNECTION RULE
+================================================================================
+ESP32 ka GND pin main zero-volt line hai.
+Yeh sabhi ek sath judte hain:
+- RFID GND
+- OLED GND
+- Buzzer (-)
+- Flow Sensor Kala taar
+- Relay GND aur 12V Adapter Minus (-)
+
+Yeh sab aapas mein judkar ESP32 ke GND se contact mein rahenge.
+
+================================================================================
+📌 4. POWER SUPPLY
+================================================================================
+1. 5V Mobile Charger / USB Cable -> ESP32 ke USB Port mein.
+2. 12V DC Adapter -> Relay ke VCC aur GND par.
+3. 230V Bijli Plug -> Motor aur Relay COM/NO par.
+================================================================================

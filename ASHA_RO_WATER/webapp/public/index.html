@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASHA RO WATER — Admin Dashboard</title>
+<style>
+:root{--blue:#1a56db;--green:#057a55;--red:#c81e1e;--orange:#d03801;--bg:#f3f4f6;--card:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--bg);color:var(--text)}
+/* ---- SIDEBAR ---- */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#1e3a5f;color:#fff;padding:0;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo h2{font-size:16px;line-height:1.3}
+.sidebar-logo span{font-size:11px;opacity:.7}
+.sidebar nav{padding:8px 0;flex:1}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 18px;background:none;border:none;color:rgba(255,255,255,.75);font-size:14px;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:.15s}
+.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:#60a5fa}
+.nav-btn .icon{font-size:18px;width:22px;text-align:center}
+.main{flex:1;overflow-x:hidden}
+/* ---- TOPBAR ---- */
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-size:18px;font-weight:700}
+.topbar .actions{display:flex;gap:8px}
+/* ---- PAGE ---- */
+.page{display:none;padding:24px}
+.page.active{display:block}
+/* ---- STATS ---- */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.stat .icon{font-size:28px;margin-bottom:8px}
+.stat .val{font-size:26px;font-weight:800}
+.stat .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+/* ---- CARD UI ---- */
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow:hidden}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card-hdr h3{font-size:15px;font-weight:700}
+.card-body{padding:16px 18px}
+/* ---- TABLE ---- */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f9fafb;padding:10px 12px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--border)}
+td{padding:11px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fafb}
+/* ---- BUTTONS ---- */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1e429f}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#046c4e}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#9b1c1c}
+.btn-light{background:#f3f4f6;color:var(--text)}.btn-light:hover{background:#e5e7eb}
+.btn-sm{padding:5px 10px;font-size:12px}
+/* ---- BADGES ---- */
+.badge{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700}
+.badge-active{background:#def7ec;color:#03543f}
+.badge-blocked{background:#fde8e8;color:#9b1c1c}
+.badge-recharge{background:#e1effe;color:#1e429f}
+.badge-dispense{background:#fce8e8;color:#9b1c1c}
+.badge-refund{background:#fef3c7;color:#92400e}
+/* ---- FORM ---- */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;font-weight:600;color:var(--muted)}
+input,select,textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;width:100%}
+input:focus,select:focus{border-color:var(--blue)}
+/* ---- MODAL ---- */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-hdr{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-hdr h3{font-size:16px;font-weight:700}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+/* ---- QR MODAL ---- */
+.qr-box{text-align:center;padding:20px}
+.qr-box img{max-width:250px;border:2px solid var(--border);border-radius:8px;padding:10px}
+.qr-url{font-size:11px;background:#f3f4f6;padding:8px;border-radius:6px;word-break:break-all;margin:10px 0}
+/* ---- SEARCH ---- */
+.search-bar{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;width:100%;max-width:280px}
+.search-bar:focus{border-color:var(--blue)}
+/* ---- ALERT ---- */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px}
+.alert-success{background:#def7ec;color:#03543f}
+.alert-error{background:#fde8e8;color:#9b1c1c}
+/* ---- AMOUNT BTNS ---- */
+.amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.amt-btn{padding:10px;border:1px solid var(--border);border-radius:8px;background:#f9fafb;font-weight:700;color:var(--blue);cursor:pointer;font-size:14px}
+.amt-btn:hover,.amt-btn.sel{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* ---- MOBILE ---- */
+@media(max-width:768px){.sidebar{display:none}.layout{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>💧 ASHA RO WATER</h2>
+      <span>Smart Van Automation</span>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="showPage('dashboard')"><span class="icon">📊</span>Dashboard</button>
+      <button class="nav-btn" onclick="showPage('balance')"><span class="icon">💰</span>Balance Enquiry</button>
+      <button class="nav-btn" onclick="showPage('customers')"><span class="icon">👥</span>Customers</button>
+      <button class="nav-btn" onclick="showPage('cards')"><span class="icon">💳</span>RFID Cards</button>
+      <button class="nav-btn" onclick="showPage('transactions')"><span class="icon">📋</span>Transactions</button>
+      <button class="nav-btn" onclick="showPage('qrgen')"><span class="icon">🔳</span>QR Generator</button>
+      <button class="nav-btn" onclick="showPage('settings')"><span class="icon">⚙️</span>Settings</button>
+    </nav>
+  </div>
+
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h1 id="pageTitle">📊 Dashboard</h1>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="openAddCustomer()">➕ New Customer</button>
+        <button class="btn btn-success" onclick="openRecharge()">⚡ Recharge</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="card">
+        <div class="card-hdr"><h3>📋 Recent Transactions</h3></div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap"><table><thead>
+            <tr><th>#</th><th>Time</th><th>Customer</th><th>Card UID</th><th>Type</th><th>Amount</th><th>Balance After</th></tr>
+          </thead><tbody id="dashTxnBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BALANCE ENQUIRY PAGE -->
+    <div class="page" id="page-balance">
+      <div style="max-width:600px">
+
+        <!-- Scan Box -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-hdr"><h3>📡 Card Scan Karein — Balance Dekhein</h3></div>
+          <div class="card-body">
+            <div id="beAlert"></div>
+            <div style="background:#f0f7ff;border:2px dashed #1a56db;border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">
+              <div style="font-size:36px;margin-bottom:8px">📡</div>
+              <div id="beScanStatus" style="font-size:14px;color:#6b7280;margin-bottom:12px">
+                "Scan Start Karein" dabao, phir card reader par rakhein
+              </div>
+              <div id="beScanUID" style="display:none;font-size:20px;font-weight:800;letter-spacing:3px;padding:8px 16px;background:#d1fae5;color:#065f46;border-radius:8px;margin-bottom:12px"></div>
+              <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                <button class="btn btn-primary" id="beScanBtn" onclick="beStartScan()">📡 Scan Start Karein</button>
+                <button class="btn btn-light" id="beStopBtn" onclick="beStopScan()" style="display:none">⏹ Rok Do</button>
+                <button class="btn btn-light" onclick="beClear()">🔄 Reset</button>
+              </div>
+            </div>
+
+            <!-- Manual UID search -->
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="beManualUID" placeholder="Ya manually Card UID likho: 9E 52 FD 03"
+                style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;outline:none"
+                onkeydown="if(event.key==='Enter') beSearchManual()">
+              <button class="btn btn-primary" onclick="beSearchManual()">🔍 Search</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Card (hidden until scan) -->
+        <div class="card" id="beResultCard" style="display:none">
+          <div class="card-hdr">
+            <h3>💳 Customer Details</h3>
+            <div id="beStatusBadge"></div>
+          </div>
+          <div class="card-body">
+
+            <!-- Balance Display -->
+            <div style="background:linear-gradient(135deg,#1a56db,#00c6ff);border-radius:14px;padding:20px;text-align:center;color:#fff;margin-bottom:16px">
+              <div style="font-size:13px;opacity:.85;margin-bottom:4px">Available Balance</div>
+              <div style="font-size:48px;font-weight:800;letter-spacing:1px" id="beBalance">₹0.00</div>
+              <div style="font-size:13px;opacity:.85;margin-top:4px" id="beCardUID"></div>
+            </div>
+
+            <!-- Customer Info -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+              <div style="background:#f9fafb;border-radius:10px;padding:12px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Customer Name</div>
+                <div style="font-weight:700;font-size:15px" id="beName">-</div>
+              </div>
+              <div style="background:#f9fafb;border-radius:10px;padding:12px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Phone</div>
+                <div style="font-weight:700;font-size:15px" id="bePhone">-</div>
+              </div>
+              <div style="background:#f9fafb;border-radius:10px;padding:12px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Water Rate</div>
+                <div style="font-weight:700;font-size:15px" id="beRate">-</div>
+              </div>
+              <div style="background:#f9fafb;border-radius:10px;padding:12px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Can Afford</div>
+                <div style="font-weight:700;font-size:15px;color:var(--green)" id="beAfford">-</div>
+              </div>
+            </div>
+
+            <!-- Quick Recharge Button -->
+            <button class="btn btn-success" style="width:100%;margin-bottom:14px" id="beRechargeBtn" onclick="">
+              ⚡ Is Customer Ko Recharge Karein
+            </button>
+
+            <!-- Transaction History -->
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📋 Recent Transactions</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Time</th><th>Type</th><th>Amount</th></tr></thead>
+                <tbody id="beTxnBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="page-customers">
+      <div class="card">
+        <div class="card-hdr">
+          <h3>👥 All Customers</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="search-bar" placeholder="🔍 Search..." oninput="filterCustomers(this.value)">
+            <button class="btn btn-primary" onclick="openAddCustomer()">➕ Add Customer</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap"><table><thead>
+            <tr><th>#</th><th>Name</th><th>Phone</th><th>Card UID</th><th>Balance</th><th>Status</th><th>Actions</th></tr>
+          </thead><tbody id="customersBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="page" id="page-cards">
+      <div class="card">
+        <div class="card-hdr"><h3>💳 RFID Cards</h3><input class="search-bar" placeholder="🔍 Search card/customer..." oninput="filterCustomers(this.value)"></div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap"><table><thead>
+            <tr><th>#</th><th>Card UID</th><th>Customer</th><th>Balance</th><th>Status</th><th>QR</th><th>Actions</th></tr>
+          </thead><tbody id="cardsBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="card">
+        <div class="card-hdr"><h3>📋 All Transactions</h3><input class="search-bar" placeholder="🔍 Search..." oninput="filterTxns(this.value)"></div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap"><table><thead>
+            <tr><th>#</th><th>Time</th><th>Customer</th><th>Type</th><th>Amount</th><th>Reference</th></tr>
+          </thead><tbody id="txnBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR GENERATOR -->
+    <div class="page" id="page-qrgen">
+      <!-- MACHINE MAIN QR CARD -->
+      <div class="card" style="margin-bottom:20px;border:2px solid #057a55">
+        <div class="card-hdr" style="background:#f0fdf4">
+          <h3 style="color:#057a55">🚰 Machine Direct UPI QR Sticker (Dabbe / Machine Par Chipkayein)</h3>
+        </div>
+        <div class="card-body" style="padding:16px">
+          <p style="font-size:13px;color:#374151;margin-bottom:12px">
+            Neeche diye gaye buttons se chunein ki aapko kaisa sticker print karna hai. PhonePe, Google Pay ya Paytm se scan karne par seedhe UPI payment khulega aur machine paani nikaal degi!
+          </p>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="loadMachineQR(0, false)">📱 General QR (Customer 10L/20L chune)</button>
+            <button class="btn btn-success" onclick="loadMachineQR(10, true)">⚡ ₹10 Fast UPI QR (10L Direct Auto-Open)</button>
+            <button class="btn btn-success" onclick="loadMachineQR(20, true)">⚡ ₹20 Fast UPI QR (20L Direct Auto-Open)</button>
+          </div>
+
+          <div id="machineQrBox" style="text-align:center;padding:16px;background:#f9fafb;border-radius:12px;border:1px dashed #cbd5e1;display:none">
+            <h4 id="machineQrTitle" style="color:#1e3a5f;font-size:16px;margin-bottom:8px"></h4>
+            <img id="machineQrImg" src="" style="max-width:240px;border:2px solid #057a55;border-radius:12px;padding:8px;background:#fff" alt="Machine QR">
+            <div style="font-size:12px;color:#6b7280;margin:8px 0" id="machineQrUrl"></div>
+            <button class="btn btn-primary" onclick="printMachineQR()">🖨️ Is Sticker Ko Print Karein</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:600px">
+        <div class="card-hdr"><h3>👤 Individual Card QR Generator</h3></div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Customer Select Karein</label>
+            <select id="qrCustomerSelect" onchange="loadQR()"><option value="">-- Customer chunein --</option></select>
+          </div>
+          <div id="qrOutput" style="display:none">
+            <div class="qr-box">
+              <img id="qrImage" src="" alt="QR Code">
+              <div class="qr-url" id="qrUrl"></div>
+              <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="printQR()">🖨️ Print</button>
+                <button class="btn btn-success" onclick="downloadQR()">💾 Download</button>
+              </div>
+            </div>
+          </div>
+          <div id="qrPlaceholder" style="text-align:center;padding:40px;color:var(--muted)">
+            👆 Customer select karein QR generate hoga
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-hdr"><h3>💳 Sabhi Registered Cards ke QR</h3></div>
+        <div class="card-body" style="padding:0">
+          <div class="tbl-wrap"><table><thead>
+            <tr><th>Name</th><th>Card UID</th><th>Balance</th><th>QR Generate</th></tr>
+          </thead><tbody id="batchQrBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="card" style="max-width:550px">
+        <div class="card-hdr"><h3>⚙️ Machine & Water Rate Settings</h3></div>
+        <div class="card-body">
+          <div id="priceAlert"></div>
+
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;margin-bottom:16px">
+            <div style="font-size:12px;color:#166534;font-weight:700">💧 Current Rate & Default Quantity</div>
+            <div style="display:flex;gap:20px;margin-top:6px">
+              <div>
+                <span style="font-size:11px;color:#4b5563">Water Rate:</span>
+                <div style="font-size:22px;font-weight:800;color:var(--blue)" id="currentPrice">₹1.00 / L</div>
+              </div>
+              <div>
+                <span style="font-size:11px;color:#4b5563">Card Tap Par Paani:</span>
+                <div style="font-size:22px;font-weight:800;color:var(--green)" id="currentCardLitres">20 Litres</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Naya Price (₹ per Litre)</label>
+              <input type="number" id="newPriceInput" step="0.25" min="0.25" placeholder="e.g. 1.00">
+            </div>
+            <div class="form-group">
+              <label>Card Scan Par Kitna Paani (Litres)</label>
+              <input type="number" id="defaultCardLitresInput" step="1" min="1" placeholder="e.g. 20">
+            </div>
+          </div>
+
+          <div style="border-top:1px solid #e5e7eb;padding-top:14px;margin-top:14px">
+            <h4 style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:10px">💳 Razorpay Gateway Keys (Bina Code Badle Live Karein)</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Razorpay Key ID</label>
+                <input type="text" id="rzpKeyInput" placeholder="rzp_test_... ya rzp_live_...">
+              </div>
+              <div class="form-group">
+                <label>Razorpay Key Secret</label>
+                <input type="password" id="rzpSecretInput" placeholder="••••••••••••••••">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;margin-top:10px">
+            <label>Admin PIN (Security)</label>
+            <input type="password" id="pricePinInput" placeholder="1234">
+          </div>
+
+          <button class="btn btn-primary" onclick="updatePrice()">💾 Sabhi Settings Save Karein</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CUSTOMER MODAL -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>➕ New Customer Register</h3><button class="btn btn-light btn-sm" onclick="closeModal('addModal')">✕</button></div>
+    <div class="modal-body">
+      <div id="addAlert"></div>
+
+      <!-- CARD SCAN BOX -->
+      <div style="background:#f0f7ff;border:2px dashed #1a56db;border-radius:12px;padding:14px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:6px;text-align:center">📡 Card Scan Karein</div>
+        <div id="scanStatus" style="font-size:12px;color:#6b7280;text-align:center;margin-bottom:10px">
+          "Scan Start Karein" dabao, phir card reader par rakhein
+        </div>
+        <div id="scanUID" style="display:none;text-align:center;font-size:20px;font-weight:800;color:#057a55;letter-spacing:3px;padding:8px;background:#d1fae5;border-radius:8px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" id="scanBtn" onclick="startScan()">📡 Scan Start Karein</button>
+          <button class="btn btn-light btn-sm" id="stopScanBtn" onclick="stopScan()" style="display:none">⏹ Rok Do</button>
+          <button class="btn btn-light btn-sm" onclick="clearScan()">🗑 Clear</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#9ca3af;text-align:center;line-height:1.5">
+          ⚠️ Pehle <b>CardScanner.ino</b> ESP32 mein upload karein, phir<br><b>CARD_SCAN_BRIDGE.bat</b> chalayein (alag window mein)
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label>Customer Name *</label><input id="addName" placeholder="Ramesh Kumar"></div>
+        <div class="form-group"><label>Phone Number</label><input id="addPhone" placeholder="9876543210"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px"><label>Address</label><input id="addAddr" placeholder="Ghar ka address"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RFID Card UID <span style="color:#057a55">(scan se auto-fill hoga)</span></label>
+          <input id="addCard" placeholder="Ya manually: 9E 52 FD 03" style="font-family:monospace;font-weight:700;letter-spacing:1px">
+        </div>
+        <div class="form-group"><label>Opening Balance (₹)</label><input id="addBal" type="number" value="0" min="0"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddCustomer()">✅ Register Karein</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECHARGE MODAL -->
+<div class="overlay" id="rechargeModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>⚡ Wallet Recharge</h3><button class="btn btn-light btn-sm" onclick="closeModal('rechargeModal')">✕</button></div>
+    <div class="modal-body">
+      <div id="rechargeAlert"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Customer Select Karein</label>
+        <select id="rechargeCustomer"><option value="">-- Customer chunein --</option></select>
+      </div>
+      <label style="font-size:12px;font-weight:600;color:var(--muted)">Amount</label>
+      <div class="amt-grid" style="margin-top:6px">
+        <button class="amt-btn" onclick="selAmt(50,this)">₹50</button>
+        <button class="amt-btn sel" onclick="selAmt(100,this)">₹100</button>
+        <button class="amt-btn" onclick="selAmt(200,this)">₹200</button>
+        <button class="amt-btn" onclick="selAmt(500,this)">₹500</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Custom Amount (₹)</label><input id="rechargeAmt" type="number" value="100" min="1"></div>
+        <div class="form-group"><label>Admin PIN *</label><input type="password" id="rechargePin" placeholder="1234"></div>
+      </div>
+      <div class="form-group"><label>Note (Optional)</label><input id="rechargeNote" placeholder="Cash collect hua, by driver"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" onclick="closeModal('rechargeModal')">Cancel</button>
+      <button class="btn btn-success" onclick="submitRecharge()">⚡ Recharge Karein</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL (from table button) -->
+<div class="overlay" id="qrModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="qrModalTitle">🔳 Customer QR Code</h3><button class="btn btn-light btn-sm" onclick="closeModal('qrModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="qr-box">
+        <img id="qrModalImg" src="" alt="QR">
+        <div id="qrModalName" style="font-weight:700;font-size:16px;margin:8px 0"></div>
+        <div class="qr-url" id="qrModalUrl"></div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="printQRModal()">🖨️ Print</button>
+          <button class="btn btn-success" onclick="downloadQRModal()">💾 Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CUSTOMER MODAL -->
+<div class="overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-hdr"><h3>✏️ Customer Edit</h3><button class="btn btn-light btn-sm" onclick="closeModal('editModal')">✕</button></div>
+    <div class="modal-body">
+      <div id="editAlert"></div>
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group"><label>Name</label><input id="editName"></div>
+        <div class="form-group"><label>Phone</label><input id="editPhone"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px"><label>Address</label><input id="editAddr"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Card UID</label><input id="editCard"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="editStatus"><option value="active">Active</option><option value="blocked">Blocked</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-light" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let allCustomers = [], allTxns = [];
+let currentQrCustomer = null;
+
+// ── NAV ──
+const pageTitles = {
+  dashboard:'📊 Dashboard',
+  balance:'💰 Balance Enquiry',
+  customers:'👥 Customers',
+  cards:'💳 RFID Cards',
+  transactions:'📋 Transactions',
+  qrgen:'🔳 QR Generator',
+  settings:'⚙️ Settings'
+};
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelector(`.nav-btn[onclick="showPage('${name}')"]`).classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[name];
+  if(name==='dashboard') loadDashboard();
+  if(name==='customers'||name==='cards') loadCustomers();
+  if(name==='transactions') loadTransactions();
+  if(name==='qrgen'){loadCustomers();renderBatchQR();}
+  if(name==='settings') loadPrice();
+  if(name==='balance') { beClear(); }
+}
+
+// ── LOAD DASHBOARD ──
+async function loadDashboard(){
+  const [stats, txns] = await Promise.all([
+    fetch('/api/stats').then(r=>r.json()),
+    fetch('/api/transactions').then(r=>r.json())
+  ]);
+  const d = stats.data;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat"><div class="icon">👥</div><div class="val">${d.total_customers}</div><div class="lbl">Total Customers</div></div>
+    <div class="stat"><div class="icon">💳</div><div class="val">${d.active_cards}</div><div class="lbl">Active Cards</div></div>
+    <div class="stat"><div class="icon">💰</div><div class="val">₹${d.total_balance_rs}</div><div class="lbl">Total Wallet Balance</div></div>
+    <div class="stat"><div class="icon">📈</div><div class="val">₹${d.today_recharge_rs}</div><div class="lbl">Aaj ka Recharge</div></div>
+    <div class="stat"><div class="icon">💧</div><div class="val">₹${d.today_dispense_rs}</div><div class="lbl">Aaj ka Paani Sales</div></div>
+    <div class="stat"><div class="icon">🚫</div><div class="val">${d.blocked_cards}</div><div class="lbl">Blocked Cards</div></div>
+  `;
+  renderTxnRows(txns.data||[], 'dashTxnBody', true);
+}
+
+// ── LOAD CUSTOMERS ──
+async function loadCustomers(){
+  const res = await fetch('/api/customers').then(r=>r.json());
+  allCustomers = res.data || [];
+  renderCustomers(allCustomers);
+  renderCards(allCustomers);
+  populateSelects();
+}
+
+function renderCustomers(list){
+  document.getElementById('customersBody').innerHTML = list.length ? list.map((c,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${c.name}</b></td>
+      <td>${c.phone||'-'}</td>
+      <td>${c.card_uid ? `<code>${c.card_uid}</code>` : '<span style="color:var(--muted)">No Card</span>'}</td>
+      <td><b>₹${((c.balance_paise||0)/100).toFixed(2)}</b></td>
+      <td><span class="badge badge-${c.status}">${c.status}</span></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-light btn-sm" onclick="openEdit('${c.id}')">✏️</button>
+        <button class="btn btn-success btn-sm" onclick="openRechargeFor('${c.id}')">⚡</button>
+        ${c.card_uid ? `<button class="btn btn-primary btn-sm" onclick="showQR('${c.id}','${c.name}')">🔳</button>` : ''}
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Koi customer nahi mila</td></tr>';
+}
+
+function renderCards(list){
+  const withCards = list.filter(c=>c.card_uid);
+  document.getElementById('cardsBody').innerHTML = withCards.length ? withCards.map((c,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><code>${c.card_uid}</code></td>
+      <td>${c.name}</td>
+      <td><b>₹${((c.balance_paise||0)/100).toFixed(2)}</b></td>
+      <td><span class="badge badge-${c.status}">${c.status}</span></td>
+      <td><button class="btn btn-primary btn-sm" onclick="showQR('${c.id}','${c.name}')">🔳 QR</button></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-light btn-sm" onclick="openEdit('${c.id}')">✏️</button>
+        <button class="btn btn-success btn-sm" onclick="openRechargeFor('${c.id}')">⚡</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Koi registered card nahi</td></tr>';
+}
+
+function filterCustomers(q){
+  const f = allCustomers.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||(c.card_uid||'').toLowerCase().includes(q.toLowerCase())||(c.phone||'').includes(q));
+  renderCustomers(f);renderCards(f);
+}
+
+// ── TRANSACTIONS ──
+async function loadTransactions(){
+  const res = await fetch('/api/transactions').then(r=>r.json());
+  allTxns = res.data||[];
+  renderTxnRows(allTxns, 'txnBody', false);
+}
+function renderTxnRows(list, targetId, short){
+  const el = document.getElementById(targetId);
+  if(!el)return;
+  el.innerHTML = list.slice(0,short?8:100).map((t,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td style="font-size:12px;color:var(--muted)">${t.created_at.substring(0,16)}</td>
+      <td>${t.customer_name||'-'}</td>
+      ${!short?`<td><span class="badge badge-${(t.type||'').toLowerCase()}">${t.type}</span></td>`:''}
+      ${short?`<td><code>${t.card_uid||'-'}</code></td><td><span class="badge badge-${(t.type||'').toLowerCase()}">${t.type}</span></td>`:''}
+      <td style="font-weight:700;color:${t.type==='RECHARGE'?'var(--green)':'var(--red)'}">
+        ${t.type==='RECHARGE'?'+':'-'}₹${((t.amount_paise||0)/100).toFixed(2)}
+      </td>
+      ${!short?`<td style="font-size:11px;color:var(--muted)">${t.payment_ref||t.note||'-'}</td>`:''}
+      ${short?`<td>-</td>`:''}
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Koi transaction nahi</td></tr>';
+}
+function filterTxns(q){
+  const f = allTxns.filter(t=>(t.customer_name||'').toLowerCase().includes(q.toLowerCase())||(t.type||'').toLowerCase().includes(q.toLowerCase())||(t.card_uid||'').toLowerCase().includes(q.toLowerCase()));
+  renderTxnRows(f,'txnBody',false);
+}
+
+// ── QR ──
+function renderBatchQR(){
+  document.getElementById('batchQrBody').innerHTML = allCustomers.filter(c=>c.card_uid).map(c=>`
+    <tr>
+      <td>${c.name}</td>
+      <td><code>${c.card_uid}</code></td>
+      <td>₹${((c.balance_paise||0)/100).toFixed(2)}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="showQR('${c.id}','${c.name}')">🔳 QR Generate</button></td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Pehle customer register karein</td></tr>';
+
+  const sel = document.getElementById('qrCustomerSelect');
+  sel.innerHTML = '<option value="">-- Customer chunein --</option>' + allCustomers.filter(c=>c.card_uid).map(c=>`<option value="${c.id}">${c.name} (${c.card_uid})</option>`).join('');
+}
+
+let currentMachineQrData = null;
+
+async function loadMachineQR(amt = 0, auto = false){
+  let url = '/api/machine-qr';
+  if (amt > 0) url += `?amt=${amt}` + (auto ? '&auto=1' : '');
+  const res = await fetch(url).then(r=>r.json()).catch(()=>null);
+  if(res && res.success){
+    currentMachineQrData = res;
+    document.getElementById('machineQrImg').src = res.qr_image;
+    document.getElementById('machineQrUrl').textContent = res.qr_url;
+    document.getElementById('machineQrTitle').textContent = res.amt > 0
+      ? `⚡ ₹${res.amt} (${res.amt} Litre) Direct UPI Auto-Pay QR`
+      : '📱 General Water Dispenser QR (Customer Choice)';
+    document.getElementById('machineQrBox').style.display = 'block';
+  }
+}
+
+function printMachineQR(){
+  if(!currentMachineQrData) return;
+  const img = currentMachineQrData.qr_image;
+  const url = currentMachineQrData.qr_url;
+  const amt = currentMachineQrData.amt;
+  const subText = amt > 0
+    ? `<div style="font-size:24px;font-weight:bold;color:#057a55;margin:8px 0">₹${amt} — ${amt} LITRE PAANI</div>`
+    : `<div style="font-size:20px;font-weight:bold;color:#0072ff;margin:8px 0">10L = ₹10 &nbsp;|&nbsp; 20L = ₹20</div>`;
+
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Machine QR Sticker</title></head><body style="text-align:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px">
+    <div style="border:4px solid #0052cc;border-radius:20px;padding:24px;max-width:340px;margin:auto">
+      <h2 style="margin:0;color:#0052cc;font-size:26px">🚰 ASHA RO WATER</h2>
+      <p style="margin:4px 0 12px;font-size:13px;color:#475569">Smart Automatic Water ATM</p>
+      ${subText}
+      <img src="${img}" style="width:250px;height:250px;border:3px solid #0f172a;border-radius:12px;margin:8px 0"><br>
+      <div style="font-weight:bold;font-size:15px;color:#1e293b;margin-top:6px">📲 PhonePe / GPay / Paytm se Scan Karein</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px">Nozzle ke niche bartan lagayein</div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:10px">${url}</div>
+    </div>
+    <script>setTimeout(()=>{window.print();window.close();},300);<\/script>
+  </body></html>`);
+}
+
+async function loadQR(){
+  const id = document.getElementById('qrCustomerSelect').value;
+  if(!id){document.getElementById('qrOutput').style.display='none';document.getElementById('qrPlaceholder').style.display='block';return;}
+  const res = await fetch(`/api/qr/${id}`).then(r=>r.json());
+  if(res.success){
+    document.getElementById('qrImage').src = res.qr_image;
+    document.getElementById('qrUrl').textContent = res.qr_url;
+    document.getElementById('qrOutput').style.display='block';
+    document.getElementById('qrPlaceholder').style.display='none';
+    currentQrCustomer = res;
+  }
+}
+
+async function showQR(id, name){
+  const res = await fetch(`/api/qr/${id}`).then(r=>r.json());
+  if(res.success){
+    document.getElementById('qrModalImg').src = res.qr_image;
+    document.getElementById('qrModalName').textContent = name;
+    document.getElementById('qrModalUrl').textContent = res.qr_url;
+    currentQrCustomer = res;
+    document.getElementById('qrModal').classList.add('show');
+  }
+}
+
+function printQR(){printQRFrom(document.getElementById('qrImage').src, document.getElementById('qrUrl').textContent);}
+function printQRModal(){printQRFrom(document.getElementById('qrModalImg').src, document.getElementById('qrModalUrl').textContent);}
+function printQRFrom(src, url){
+  const w=window.open('');
+  w.document.write(`<html><body style="text-align:center;font-family:sans-serif;padding:30px">
+    <h2>💧 ASHA RO WATER</h2>
+    <img src="${src}" style="width:220px;height:220px"><br>
+    <p style="font-size:13px">Balance check aur recharge ke liye yeh QR scan karein</p>
+    <p style="font-size:11px;color:#666">${url}</p>
+    <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+}
+function downloadQR(){downloadQRFrom(document.getElementById('qrImage').src,'QR');}
+function downloadQRModal(){downloadQRFrom(document.getElementById('qrModalImg').src,'QR');}
+function downloadQRFrom(src, prefix){
+  const a=document.createElement('a');a.href=src;a.download=prefix+'_RO_Water.png';a.click();
+}
+
+// ── ADD CUSTOMER ──
+let scanInterval = null;
+let lastSeenUID  = null;
+
+function openAddCustomer(){
+  document.getElementById('addModal').classList.add('show');
+  clearScan();
+}
+
+function startScan() {
+  document.getElementById('scanBtn').style.display    = 'none';
+  document.getElementById('stopScanBtn').style.display = 'inline-flex';
+  document.getElementById('scanStatus').innerHTML =
+    '<span style="color:#1a56db">⏳ Waiting... Card ko reader par rakhein</span>';
+  document.getElementById('scanStatus').style.animation = 'none';
+
+  // Clear old scan on server
+  fetch('/api/last-scan', { method: 'DELETE' });
+  lastSeenUID = null;
+
+  // Poll every 600ms
+  scanInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/last-scan').then(r => r.json());
+      if (res.success && res.uid && res.uid !== lastSeenUID) {
+        lastSeenUID = res.uid;
+        cardScanned(res.uid);
+      }
+    } catch(e) {}
+  }, 600);
+}
+
+function stopScan() {
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  document.getElementById('scanBtn').style.display     = 'inline-flex';
+  document.getElementById('stopScanBtn').style.display = 'none';
+  document.getElementById('scanStatus').textContent    = '"Scan Start Karein" dabao, phir card reader par rakhein';
+}
+
+function cardScanned(uid) {
+  stopScan();
+  // Auto-fill the card UID field
+  document.getElementById('addCard').value = uid;
+  // Show in scan box
+  const uidBox = document.getElementById('scanUID');
+  uidBox.textContent = '✅ ' + uid;
+  uidBox.style.display = 'block';
+  document.getElementById('scanStatus').innerHTML =
+    '<span style="color:#057a55;font-weight:700">Card scan ho gaya! Naam aur number dalein.</span>';
+  // Auto-focus name field
+  setTimeout(() => document.getElementById('addName').focus(), 100);
+}
+
+function clearScan() {
+  stopScan();
+  document.getElementById('addCard').value = '';
+  document.getElementById('scanUID').style.display = 'none';
+  document.getElementById('scanUID').textContent   = '';
+  document.getElementById('scanStatus').textContent = '"Scan Start Karein" dabao, phir card reader par rakhein';
+  fetch('/api/last-scan', { method: 'DELETE' }).catch(()=>{});
+}
+
+
+async function submitAddCustomer(){
+  const body = {
+    name: document.getElementById('addName').value,
+    phone: document.getElementById('addPhone').value,
+    address: document.getElementById('addAddr').value,
+    card_uid: document.getElementById('addCard').value,
+    opening_balance: document.getElementById('addBal').value
+  };
+  if(!body.name){showAlert('addAlert','Naam zaroori hai!','error');return;}
+  const res = await fetch('/api/customers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
+  if(res.success){closeModal('addModal');loadCustomers();loadDashboard();['addName','addPhone','addAddr','addCard'].forEach(id=>document.getElementById(id).value='');document.getElementById('addBal').value=0;}
+  else showAlert('addAlert',res.message,'error');
+}
+
+// ── RECHARGE ──
+function openRecharge(){document.getElementById('rechargeModal').classList.add('show');}
+function openRechargeFor(id){document.getElementById('rechargeCustomer').value=id;document.getElementById('rechargeModal').classList.add('show');}
+function selAmt(v,btn){document.querySelectorAll('.amt-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');document.getElementById('rechargeAmt').value=v;}
+async function submitRecharge(){
+  const body={customer_id:document.getElementById('rechargeCustomer').value,amount_rs:document.getElementById('rechargeAmt').value,admin_pin:document.getElementById('rechargePin').value,note:document.getElementById('rechargeNote').value};
+  if(!body.customer_id){showAlert('rechargeAlert','Customer chunein','error');return;}
+  const res = await fetch('/api/recharge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
+  if(res.success){showAlert('rechargeAlert',`${res.message} | New Balance: ₹${res.new_balance_rs}`,'success');loadCustomers();loadDashboard();setTimeout(()=>{closeModal('rechargeModal');document.getElementById('rechargePin').value='';},3000);}
+  else showAlert('rechargeAlert',res.message,'error');
+}
+
+// ── EDIT CUSTOMER ──
+function openEdit(id){
+  const c = allCustomers.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('editId').value=c.id;
+  document.getElementById('editName').value=c.name;
+  document.getElementById('editPhone').value=c.phone||'';
+  document.getElementById('editAddr').value=c.address||'';
+  document.getElementById('editCard').value=c.card_uid||'';
+  document.getElementById('editStatus').value=c.status;
+  document.getElementById('editModal').classList.add('show');
+}
+async function submitEdit(){
+  const id = document.getElementById('editId').value;
+  const body={name:document.getElementById('editName').value,phone:document.getElementById('editPhone').value,address:document.getElementById('editAddr').value,card_uid:document.getElementById('editCard').value,status:document.getElementById('editStatus').value};
+  const res = await fetch(`/api/customers/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
+  if(res.success){closeModal('editModal');loadCustomers();}
+  else showAlert('editAlert',res.message,'error');
+}
+
+// ── SETTINGS & PRICE ──
+async function loadPrice(){
+  const res = await fetch('/api/settings').then(r=>r.json()).catch(()=>null);
+  if(res && res.success){
+    document.getElementById('currentPrice').textContent = `₹${res.price_per_litre_rs} / L`;
+    document.getElementById('currentCardLitres').textContent = `${res.default_card_litres} Litres`;
+    document.getElementById('newPriceInput').value = res.price_per_litre_rs;
+    document.getElementById('defaultCardLitresInput').value = res.default_card_litres;
+    if(res.razorpay_key_id) document.getElementById('rzpKeyInput').value = res.razorpay_key_id;
+    if(res.razorpay_key_secret) document.getElementById('rzpSecretInput').value = res.razorpay_key_secret;
+  }
+}
+async function updatePrice(){
+  const body = {
+    price_per_litre_rs: document.getElementById('newPriceInput').value,
+    default_card_litres: document.getElementById('defaultCardLitresInput').value,
+    razorpay_key_id: document.getElementById('rzpKeyInput').value,
+    razorpay_key_secret: document.getElementById('rzpSecretInput').value,
+    admin_pin: document.getElementById('pricePinInput').value
+  };
+  const res = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(r=>r.json()).catch(()=>null);
+
+  if(res && res.success){
+    showAlert('priceAlert', res.message, 'success');
+    loadPrice();
+  } else {
+    showAlert('priceAlert', res ? res.message : 'Error updating settings', 'error');
+  }
+}
+
+// ── HELPERS ──
+function populateSelects(){
+  const opts = '<option value="">-- Customer chunein --</option>' + allCustomers.map(c=>`<option value="${c.id}">${c.name}${c.card_uid?' ('+c.card_uid+')':''}</option>`).join('');
+  document.getElementById('rechargeCustomer').innerHTML = opts;
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function showAlert(targetId,msg,type){const el=document.getElementById(targetId);if(el){el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;setTimeout(()=>el.innerHTML='',5000);}}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+
+// ══════════════════════════════════════════
+// ── BALANCE ENQUIRY ──
+// ══════════════════════════════════════════
+let beInterval   = null;
+let beLastUID    = null;
+
+function beStartScan() {
+  document.getElementById('beScanBtn').style.display  = 'none';
+  document.getElementById('beStopBtn').style.display  = 'inline-flex';
+  document.getElementById('beScanStatus').innerHTML   =
+    '<span style="color:#1a56db;font-weight:600">⏳ Waiting... Card ko reader par rakhein</span>';
+  document.getElementById('beScanUID').style.display  = 'none';
+  beLastUID = null;
+
+  // Clear old scan
+  fetch('/api/last-scan', { method: 'DELETE' }).catch(()=>{});
+
+  // Poll every 700ms
+  beInterval = setInterval(async () => {
+    try {
+      const r = await fetch('/api/last-scan').then(x => x.json());
+      if (r.success && r.uid && r.uid !== beLastUID) {
+        beLastUID = r.uid;
+        beStopScan();
+        await beFetchByUID(r.uid);
+      }
+    } catch(e) {}
+  }, 700);
+}
+
+function beStopScan() {
+  if (beInterval) { clearInterval(beInterval); beInterval = null; }
+  document.getElementById('beScanBtn').style.display = 'inline-flex';
+  document.getElementById('beStopBtn').style.display = 'none';
+}
+
+function beClear() {
+  beStopScan();
+  beLastUID = null;
+  document.getElementById('beScanStatus').textContent = '"Scan Start Karein" dabao, phir card reader par rakhein';
+  document.getElementById('beScanUID').style.display  = 'none';
+  document.getElementById('beScanUID').textContent    = '';
+  document.getElementById('beManualUID').value        = '';
+  document.getElementById('beResultCard').style.display = 'none';
+  document.getElementById('beAlert').innerHTML        = '';
+  fetch('/api/last-scan', { method: 'DELETE' }).catch(()=>{});
+}
+
+async function beSearchManual() {
+  const uid = document.getElementById('beManualUID').value.trim().toUpperCase();
+  if (!uid) { showAlert('beAlert', 'Card UID likho ya scan karo', 'error'); return; }
+  await beFetchByUID(uid);
+}
+
+async function beFetchByUID(uid) {
+  // Show scanned UID
+  const uidEl = document.getElementById('beScanUID');
+  uidEl.textContent = '📡 ' + uid;
+  uidEl.style.display = 'block';
+  document.getElementById('beScanStatus').innerHTML =
+    '<span style="color:#057a55;font-weight:700">Card scan ho gaya! Data load ho raha hai...</span>';
+
+  // Fetch from server by card UID
+  const res = await fetch('/api/card/' + encodeURIComponent(uid)).then(r => r.json()).catch(() => null);
+
+  if (!res || !res.success) {
+    showAlert('beAlert', '❌ Card registered nahi hai: ' + uid, 'error');
+    document.getElementById('beResultCard').style.display = 'none';
+    return;
+  }
+
+  // Fetch recent transactions
+  const txnRes = await fetch('/api/transactions/' + res.data.id).then(r => r.json()).catch(() => ({ data: [] }));
+
+  beShowResult(res.data, res.paise_per_litre, txnRes.data || []);
+}
+
+function beShowResult(c, paise_per_litre, txns) {
+  const balRs  = ((c.balance_paise || 0) / 100).toFixed(2);
+  const rateRs = (paise_per_litre / 100).toFixed(2);
+  const litres = paise_per_litre > 0 ? ((c.balance_paise || 0) / paise_per_litre).toFixed(1) : '0';
+
+  // Fill result card
+  document.getElementById('beBalance').textContent  = '₹' + balRs;
+  document.getElementById('beCardUID').textContent  = 'Card: ' + (c.card_uid || '-');
+  document.getElementById('beName').textContent     = c.name;
+  document.getElementById('bePhone').textContent    = c.phone || '-';
+  document.getElementById('beRate').textContent     = '₹' + rateRs + ' / litre';
+  document.getElementById('beAfford').textContent   = litres + ' litres';
+  document.getElementById('beAfford').style.color   = parseFloat(litres) < 5 ? 'var(--red)' : 'var(--green)';
+
+  // Status badge
+  document.getElementById('beStatusBadge').innerHTML =
+    `<span class="badge badge-${c.status}">${c.status === 'active' ? '✅ Active' : '🚫 Blocked'}</span>`;
+
+  // Balance color — red if low
+  document.getElementById('beBalance').style.color =
+    (c.balance_paise || 0) < 2000 ? '#fbbf24' : '#fff';
+
+  // Recharge button
+  document.getElementById('beRechargeBtn').onclick = () => openRechargeFor(c.id);
+
+  // Transactions
+  document.getElementById('beTxnBody').innerHTML = txns.slice(0, 8).map(t => `
+    <tr>
+      <td style="font-size:11px;color:var(--muted)">${t.created_at.substring(0,16)}</td>
+      <td><span class="badge badge-${(t.type||'').toLowerCase()}">${t.type}</span></td>
+      <td style="font-weight:700;color:${t.type==='RECHARGE'?'var(--green)':'var(--red)'}">
+        ${t.type==='RECHARGE'?'+':'-'}₹${((t.amount_paise||0)/100).toFixed(2)}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:12px">Koi transaction nahi</td></tr>';
+
+  document.getElementById('beResultCard').style.display = 'block';
+  document.getElementById('beResultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── INIT ──
+loadDashboard();loadCustomers();loadPrice();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "customers": [
+    {
+      "id": "6d0324fb-094c-463a-80ba-87753ee08adc",
+      "name": "AJAY KUSHWAHA",
+      "phone": "7700828989",
+      "address": "BANWARIYA",
+      "card_uid": "9E 52 FD 03",
+      "status": "active",
+      "created_at": "23/9/2026, 3:31:39 pm"
+    }
+  ],
+  "wallets": {
+    "6d0324fb-094c-463a-80ba-87753ee08adc": 25000
+  },
+  "transactions": [
+    {
+      "id": "SIM_1295098C",
+      "customer_id": "6d0324fb-094c-463a-80ba-87753ee08adc",
+      "customer_name": "AJAY KUSHWAHA",
+      "card_uid": "9E 52 FD 03",
+      "type": "RECHARGE",
+      "amount_paise": 5000,
+      "note": "UPI Payment (TEST MODE)",
+      "payment_ref": "SIM_1295098C",
+      "created_at": "23/9/2026, 3:33:14 pm"
+    },
+    {
+      "id": "797c3afe-3bf1-4da0-b777-da988af79db8",
+      "customer_id": "6d0324fb-094c-463a-80ba-87753ee08adc",
+      "customer_name": "AJAY KUSHWAHA",
+      "card_uid": "9E 52 FD 03",
+      "type": "RECHARGE",
+      "amount_paise": 20000,
+      "note": "Opening Balance",
+      "payment_ref": null,
+      "created_at": "23/9/2026, 3:31:39 pm"
+    }
+  ],
+  "price": {
+    "paise_per_litre": 100
+  }
+}
